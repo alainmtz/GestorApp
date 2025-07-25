@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model cliente {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(255)
+  email       String   @db.VarChar(255)
+  telefono    String   @db.VarChar(50)
+  actividades String[]
+
+  @@map("cliente")
+}
+
+model articulo {
+  id             Int             @id @default(autoincrement())
+  marca          String          @db.VarChar(100)
+  modelo         String          @db.VarChar(100)
+  detalles       String?
+  foto           String?         @db.VarChar(255)
+  proveedor_id   Int?
+  costo_unitario Decimal         @db.Decimal(12, 2)
+  fecha_ingreso  DateTime?       @default(dbgenerated("CURRENT_DATE")) @db.Date
+  proveedor      proveedor?      @relation(fields: [proveedor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  caja_articulo  caja_articulo[]
+}
+
+model caja {
+  id            Int             @id @default(autoincrement())
+  nombre        String          @db.VarChar(100)
+  foto          String?         @db.VarChar(255)
+  caja_articulo caja_articulo[]
+}
+
+model caja_articulo {
+  id            Int       @id @default(autoincrement())
+  caja_id       Int?
+  articulo_id   Int?
+  fecha_entrada DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  articulo      articulo? @relation(fields: [articulo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  caja          caja?     @relation(fields: [caja_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model proveedor {
+  id       Int        @id @default(autoincrement())
+  nombre   String     @db.VarChar(100)
+  contacto String?    @db.VarChar(100)
+  telefono String?    @db.VarChar(30)
+  email    String?    @db.VarChar(100)
+  articulo articulo[]
+}
+
+model users {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  name       String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  password   String?   @db.VarChar(255)
+  role       Role?     @default(USER)
+}
+
+enum Role {
+  ADMIN
+  USER
+}
