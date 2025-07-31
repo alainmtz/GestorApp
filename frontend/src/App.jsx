@@ -15,10 +15,8 @@ function App() {
         <Route path="*" element={
           <Layout>
             <Routes>
-              <Route path="/" element={<Layout />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              {/*<Route path="/layout" element={<Layout />} />*/}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/clientes" element={<ClientesPage />} />
               {/* Puedes agregar más rutas aquí */}

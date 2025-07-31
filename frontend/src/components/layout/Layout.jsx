@@ -1,12 +1,12 @@
 // src/components/layout/Layout.jsx
 import React from 'react';
-import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import MenuAppBar from './Navbar';
 
 const Layout = ({ children }) => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
-            <Navbar />
+            <MenuAppBar />
 
             <div className="flex flex-1 overflow-hidden">
                 <Sidebar />
