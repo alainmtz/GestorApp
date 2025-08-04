@@ -66,5 +66,7 @@ model users {
 
 enum Role {
   ADMIN
+  DEVELOPER
   USER
+  GUEST
 }

@@ -12,6 +12,8 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
+import { useAuth } from '../../context/AuthContext';
+import { NavLink } from 'react-router-dom';
 
 const pages = ['Products', 'Pricing', 'Blog'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
@@ -35,6 +37,21 @@ function ResponsiveAppBar() {
         setAnchorElUser(null);
     };
 
+    const menuItems = [
+        { path: '/', label: 'Dashboard', icon: '📊', exact: true },
+        { path: '/clientes', label: 'Clientes', icon: '👥' },
+        { path: '/articulos', label: 'Artículos', icon: '📦' },
+        { path: '/cajas', label: 'Cajas', icon: '🧰' },
+        { path: '/proveedores', label: 'Proveedores', icon: '🏭' }
+    ];
+    const user = useAuth();
+    const adminItems = user?.role === 'ADMIN' ? [
+        { path: '/usuarios', label: 'Usuarios', icon: '👤' },
+        { path: '/configuracion', label: 'Configuración', icon: '⚙️' }
+    ] : [];
+
+
+
     return (
         <AppBar position="static">
             <Container maxWidth="xl">
@@ -44,7 +61,7 @@ function ResponsiveAppBar() {
                         variant="h6"
                         noWrap
                         component="a"
-                        href="#app-bar-with-responsive-menu"
+                        href="/"
                         sx={{
                             mr: 2,
                             display: { xs: 'none', md: 'flex' },
@@ -55,7 +72,7 @@ function ResponsiveAppBar() {
                             textDecoration: 'none',
                         }}
                     >
-                        LOGO
+                        GESTOR APP
                     </Typography>
 
                     <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -83,12 +100,24 @@ function ResponsiveAppBar() {
                             }}
                             open={Boolean(anchorElNav)}
                             onClose={handleCloseNavMenu}
-                            sx={{ display: { xs: 'block', md: 'none' } }}
+                            sx={{ display: { xs: 'block', md: 'none', }, bgcolor: 'primary' }}
                         >
-                            {pages.map((page) => (
-                                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                                    <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
-                                </MenuItem>
+                            {[...menuItems, ...adminItems].map((item) => (
+
+                                <NavLink
+                                    key={item.path}
+                                    to={item.path}
+                                    end={item.exact}
+                                    className={({ isActive }) =>
+                                        `flex items-center padding ${isActive
+                                            ? 'bg-blue-600 text-white'
+                                            : 'hover:bg-gray-700'
+                                        }`
+                                    }
+                                >
+                                    <Typography sx={{ p: 1 }} onClick={handleCloseNavMenu}>{item.label}</Typography>
+
+                                </NavLink>
                             ))}
                         </Menu>
                     </Box>
@@ -112,15 +141,19 @@ function ResponsiveAppBar() {
                         LOGO
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        {pages.map((page) => (
-                            <Button
-                                key={page}
+                        {[...menuItems, ...adminItems].map((admini) => (
+                            <NavLink
+                                key={admini.label}
+                                to={admini.path}
+                                end={admini.exact}
                                 onClick={handleCloseNavMenu}
                                 sx={{ my: 2, color: 'white', display: 'block' }}
                             >
-                                {page}
-                            </Button>
+                                <Typography sx={{ p: 1, color: 'white', bgcolor: 'primary' }}>{admini.label}</Typography>
+                            </NavLink>
                         ))}
+
+
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">

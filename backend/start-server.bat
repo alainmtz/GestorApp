@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando el servidor backend...
+node index.js

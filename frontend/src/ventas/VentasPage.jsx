@@ -5,6 +5,9 @@ const VentasPage = () => {
     <div>
       <h1>Ventas</h1>
       {/* Aquí irá la lista y el formulario de ventas */}
+      <VentasForm />
+      <VentasList />
+
     </div>
   );
 };
