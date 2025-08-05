@@ -1,36 +1,42 @@
 
-import { Box, Card, CardHeader } from '@mui/material';
+import {
+    Box,
+    Card,
+    CardHeader,
+    Typography,
+    CardContent,
+    Button,
+    Paper,
+    Grid,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    IconButton,
+    DialogActions,
+    styled,
+    Tooltip
+} from '@mui/material';
 import React, { useState, useEffect } from 'react';
-import { Typography } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
-import { NavLink } from 'react-router-dom';
-import { CardContent } from '@mui/material';
-import Button from '@mui/material/Button';
-import { styled } from '@mui/material/styles';
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid';
-import { grey } from '@mui/material/colors';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ClienteForm from '../../components/clientes/ClienteForm';
+import { Add } from '@mui/icons-material';
 
-const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: 'center',
-    color: (theme.vars ?? theme).palette.text.secondary,
-    ...theme.applyStyles('dark', {
-        backgroundColor: '#1A2027',
-    }),
-}));
 const ClientesPage = () => {
-    const user = useAuth();
+    const { user } = useAuth();
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedCliente, setSelectedCliente] = useState(null);
+    const [saving, setSaving] = useState(false);
 
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3001/clientes', {
+            const response = await fetch('http://localhost:3001/api/clientes', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -48,9 +54,88 @@ const ClientesPage = () => {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         fetchData();
     }, []);
+
+    const handleOpenModal = (cliente = null) => {
+        setSelectedCliente(cliente);
+        setOpenModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedCliente(null);
+        setOpenModal(false);
+    };
+
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [clienteToDelete, setClienteToDelete] = useState(null);
+
+    const handleSubmit = async (formData) => {
+        try {
+            setSaving(true);
+            const token = localStorage.getItem('token');
+            const method = selectedCliente ? 'PUT' : 'POST';
+            const url = selectedCliente
+                ? `http://localhost:3001/api/clientes/${selectedCliente.id}`
+                : 'http://localhost:3001/api/clientes';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al guardar los cambios');
+            }
+
+            await fetchData();
+            handleCloseModal();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteClick = (cliente) => {
+        setClienteToDelete(cliente);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setClienteToDelete(null);
+        setDeleteDialogOpen(false);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!clienteToDelete) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:3001/api/clientes/${clienteToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al eliminar el cliente');
+            }
+
+            await fetchData();
+            handleDeleteClose();
+        } catch (err) {
+            setError('Error al eliminar el cliente: ' + err.message);
+        }
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -60,8 +145,8 @@ const ClientesPage = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    component={NavLink}
-                    to="/clientes/new"
+                    startIcon={<Add />}
+                    onClick={() => handleOpenModal()}
                 >
                     Nuevo Cliente
                 </Button>
@@ -97,22 +182,105 @@ const ClientesPage = () => {
                                             </Typography>
                                         </Box>
                                     )}
+                                    <Box sx={{ mt: 1 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Dirección: {cliente.direccion || 'No especificada'}
+                                        </Typography>
+                                    </Box>
                                 </CardContent>
                                 <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <Button
+                                        variant='contained'
                                         size="small"
                                         color="primary"
-                                        component={NavLink}
-                                        to={`/clientes/${cliente.id}`}
+                                        onClick={() => handleOpenModal(cliente)}
                                     >
                                         Editar
                                     </Button>
+                                    {user?.role === 'ADMIN' ? (
+                                        <Tooltip title="Eliminar cliente">
+                                            <Button
+                                                variant='outlined'
+                                                size="small"
+                                                color="error"
+                                                onClick={() => handleDeleteClick(cliente)}
+                                                sx={{ ml: 1 }}
+                                                startIcon={<DeleteIcon />}
+                                            >
+                                                Eliminar
+                                            </Button>
+                                        </Tooltip>
+                                    ) : (
+                                        <Tooltip title="Solo los administradores pueden eliminar clientes">
+                                            <span>
+                                                <Button
+                                                    variant='contained'
+                                                    size="small"
+                                                    color="error"
+                                                    disabled
+                                                    sx={{ ml: 1 }}
+                                                    startIcon={<DeleteIcon />}
+                                                >
+                                                    Eliminar
+                                                </Button>
+                                            </span>
+                                        </Tooltip>
+                                    )}
                                 </Box>
                             </Card>
                         </Grid>
                     ))}
                 </Grid>
             )}
+
+            {/* Modal de edición/creación */}
+            <Dialog
+                open={openModal}
+                onClose={handleCloseModal}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {selectedCliente ? 'Editar Cliente' : 'Nuevo Cliente'}
+                    <IconButton
+                        aria-label="close"
+                        onClick={handleCloseModal}
+                        sx={{ color: 'grey.500' }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                    <ClienteForm
+                        cliente={selectedCliente}
+                        onSubmit={handleSubmit}
+                        isLoading={saving}
+                    />
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal de confirmación de eliminación */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Confirmar eliminación
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        ¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDeleteClose}>Cancelar</Button>
+                    <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

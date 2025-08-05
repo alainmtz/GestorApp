@@ -4,6 +4,7 @@ const prisma = require('./lib/prisma');
 const authRoutes = require('./routes/authRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const clienteRoutes = require('./routes/clienteRoutes');
+const articuloRoutes = require('./routes/articuloRoutes');
 
 const app = express();
 const PORT = 3001;
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/clientes', clienteRoutes);
+app.use('/api/articulos', articuloRoutes);
 
 // Middleware para mostrar la IP
 app.use((req, res, next) => {

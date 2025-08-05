@@ -2,11 +2,8 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, BrowserRouter } from "react-router-dom";
 import AdminPage from "./pages/Adminpage";
 import RegisterPage from "./pages/Registerpage";
-import NotFoundPage from "./pages/NotFoundPage";
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/auth/LoginPage';
-import ClientesPage from './pages/clientes/ClientesPage';
-import VentasPage from './pages/ventas/VentasPage';
 import RolesPage from './pages/roles/RolesPage';
 
 function App() {
